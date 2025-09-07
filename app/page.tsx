@@ -1,103 +1,95 @@
-import Image from "next/image";
+import Image from 'next/image'
 
-export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+async function getProducts() {
+  const token = process.env.NEXT_PUBLIC_STRAPI_API_TOKEN;
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
+  // If the token is not defined, we can't make the API call.
+  if (!token) {
+    console.error("Strapi API token is missing. Please check your .env.local file.");
+    return null;
+  }
+
+  try {
+    const res = await fetch('http://localhost:1337/api/products?populate=*', {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      // Prevents Next.js from using a cached version of the data
+      cache: 'no-store'
+    });
+
+    if (!res.ok) {
+      throw new Error(`API returned an error: ${res.status}`);
+    }
+
+    const response = await res.json();
+    return response.data;
+
+  } catch (error) {
+    // Log the error to the console for debugging
+    console.error("Failed to fetch products:", error);
+    return null;
+  }
+}
+
+/**
+ * The main page component for the webshop.
+ * It fetches the products and displays them in a list.
+ * @returns {JSX.Element} The rendered page component.
+ */
+export default async function Page() {
+  const products = await getProducts();
+
+  // Check if products is a valid array with content before trying to map.
+  if (!Array.isArray(products) || products.length === 0) {
+    return (
+      <main>
+        <h1>No Products Found</h1>
+        <p>There might be an issue with the API, or no products have been added yet.</p>
+        <p>Please check your Strapi admin panel.</p>
       </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+    );
+  }
+
+  return (
+    <main className="p-30">
+      <h1 className="text-2xl py-10">Our Products</h1>
+      <ul className="grid gap-10">
+        
+{products.map((product) => {
+  // This is the correct way to get just the relative path.
+  const imagePath = Array.isArray(product.image) && product.image[0] && product.image[0].url
+    ? product.image[0].url
+    : null;
+
+  return (
+    <li key={product.id}>
+      <h2 className="text-2xl text-blue-600">{product.name}</h2>
+      {imagePath && (
+        <Image
+          src={imagePath} // Pass the relative path only!
+          alt={product.name || 'Product image'}
+          width={200}
+          height={200}
+        />
+     )}
+
+            {/* This new section handles the description array.
+              It maps over each object in the array and then maps over the nested
+              'children' array to get the actual 'text' from each object.
+              This will correctly render the description as a single string.
+            */}
+            <p>
+              {Array.isArray(product.description) 
+                ? product.description.map(block => block.children.map(child => child.text).join('')).join(' ')
+                : product.description}
+            </p>
+            <p className="text-yellow-400">Price: ${product.price}</p>
+          </li>
+         );
+        })}
+      </ul>
+    </main>
   );
 }
+
