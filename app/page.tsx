@@ -1,5 +1,19 @@
 import Image from 'next/image'
 
+const STRAPI_API_URL = process.env.NEXT_PUBLIC_STRAPI_API_URL || 'http://localhost:1337';
+
+// Define the type for the text children inside the description
+interface DescriptionTextChild {
+  type: string;
+  text: string;
+}
+
+// Define the type for a block within the description array
+interface DescriptionBlock {
+  type: string;
+  children: DescriptionTextChild[];
+}
+
 async function getProducts() {
   const token = process.env.NEXT_PUBLIC_STRAPI_API_TOKEN;
 
@@ -10,7 +24,7 @@ async function getProducts() {
   }
 
   try {
-    const res = await fetch('http://localhost:1337/api/products?populate=*', {
+    const res = await fetch(`${STRAPI_API_URL}/api/products?populate=*`,{
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -80,8 +94,8 @@ export default async function Page() {
               This will correctly render the description as a single string.
             */}
             <p>
-              {Array.isArray(product.description) 
-                ? product.description.map(block => block.children.map(child => child.text).join('')).join(' ')
+              {Array.isArray(product.description)
+                ? product.description.map((block: DescriptionBlock) => block.children.map((child: DescriptionTextChild) => child.text).join('')).join(' ')
                 : product.description}
             </p>
             <p className="text-yellow-400">Price: ${product.price}</p>
