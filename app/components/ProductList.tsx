@@ -122,7 +122,7 @@ export default function ProductList({ products }: ProductListProps) {
               <h2 className="text-2xl text-blue-600">{productName}</h2>
               {productImageUrl && (
                 <Image
-                  src={`${STRAPI_API_URL}${productImageUrl}`}
+                  src={productImageUrl}
                   alt={productName || 'Product image'}
                   width={200}
                   height={200}
