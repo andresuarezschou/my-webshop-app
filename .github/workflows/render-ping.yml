@@ -11,6 +11,5 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Run cURL on Website
-        run: curl -I https://my-strapi-project-abjk.onrender.com
-
+    - name: Send GET request to Render service
+      run: curl -s "https://my-strapi-project-abjk.onrender.com"
