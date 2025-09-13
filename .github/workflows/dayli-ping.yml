@@ -8,8 +8,7 @@ on:
 
 jobs:
   curl-website:
-    ru
-ns-on: ubuntu-latest
+    runs-on: ubuntu-latest
 
     steps:
       - name: Run cURL on Website
