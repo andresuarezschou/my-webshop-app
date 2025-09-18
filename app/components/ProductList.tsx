@@ -3,8 +3,8 @@
 import Image from 'next/image';
 import { useState } from 'react';
 import Cart from './Cart';
-import Checkout from './Checkout.tsx'
-import Confirmation from './Confirmation.tsx'
+import Checkout from './Checkout'
+import Confirmation from './Confirmation'
 
 const STRAPI_API_URL = process.env.NEXT_PUBLIC_STRAPI_API_URL || 'http://localhost:1337';
 
