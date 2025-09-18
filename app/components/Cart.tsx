@@ -18,6 +18,7 @@ interface CartProps {
   show: boolean;
   onClose: () => void;
   onRemove: (itemId: number) => void;
+  onCheckout: () => void;
 }
 
 /**
@@ -25,8 +26,29 @@ interface CartProps {
  * @param {CartProps} props The component props.
  * @returns {JSX.Element} The rendered cart modal.
  */
-const Cart: React.FC<CartProps> = ({ cartItems, show, onClose, onRemove }) => {
+const Cart: React.FC<CartProps> = ({ cartItems, show, onClose, onRemove, onCheckout }) => {
   // Calculate the total price of all items in the cart
+  
+useEffect(() => {
+    // Function to handle keydown events
+    const handleKeydown = (e: KeyboardEvent) => {
+      // If the 'Escape' key is pressed, close the modal
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    // Add the event listener when the component mounts
+    if (show) {
+      document.addEventListener('keydown', handleKeydown);
+    }
+
+    // Return a cleanup function to remove the event listener
+    return () => {
+      document.removeEventListener('keydown', handleKeydown);
+    };
+  }, [show, onClose]);
+
   const cartTotal = cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
 
   if (!show) {
@@ -71,6 +93,12 @@ const Cart: React.FC<CartProps> = ({ cartItems, show, onClose, onRemove }) => {
               <h3 className="text-xl font-bold">Total:</h3>
               <span className="text-xl font-bold">${cartTotal.toFixed(2)}</span>
             </div>
+            <button
+              onClick={onCheckout}
+              className="mt-6 w-full bg-blue-500 text-white font-bold py-3 px-4 rounded-full hover:bg-blue-600 transition-colors duration-300 shadow-lg"
+            >
+              Checkout now
+            </button>
           </div>
         )}
       </div>

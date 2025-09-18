@@ -3,6 +3,8 @@
 import Image from 'next/image';
 import { useState } from 'react';
 import Cart from './Cart';
+import Checkout from './Checkout.tsx'
+import Confirmation from './Confirmation.tsx'
 
 const STRAPI_API_URL = process.env.NEXT_PUBLIC_STRAPI_API_URL || 'http://localhost:1337';
 
@@ -56,6 +58,9 @@ interface ProductListProps {
 export default function ProductList({ products }: ProductListProps) {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [showCart, setShowCart] = useState<boolean>(false);
+  const [showCheckout, setShowCheckout] = useState<boolean>(false);
+  const [showConfirmation, setShowConfirmation] = useState<boolean>(false);
+  const [orderSummary, setOrderSummary] = useState({ fullName: '', email: '', total: 0 });
 
   const addToCart = (product: Product) => {
     const productName = product.attributes?.name || product.name;
@@ -95,7 +100,24 @@ export default function ProductList({ products }: ProductListProps) {
     });
   };
 
+  const clearCart = () => {
+    setCartItems([]);
+  };
+
   const totalItemsInCart = cartItems.reduce((total, item) => total + item.quantity, 0);
+
+  const handleCheckout = () => {
+    setShowCart(false);
+    setShowCheckout(true);
+  };
+
+  const handleConfirmOrder = (summary: { fullName: string; email: string; total: number }) => {
+    setShowCheckout(false);
+    clearCart();
+    setOrderSummary(summary);
+    setShowConfirmation(true);
+  };
+
 
   return (
     <main className="p-30">
@@ -150,8 +172,21 @@ export default function ProductList({ products }: ProductListProps) {
         show={showCart} 
         onClose={() => setShowCart(false)} 
         onRemove={removeOneFromCart}
+        onCheckout={handleCheckout}
+      />
+      <Checkout
+       cartItems={cartItems}
+       show={showCheckout}
+       onClose={() => setShowCheckout(false)}
+       onConfirmOrder={handleConfirmOrder}
+      />
+      <Confirmation
+        show={showConfirmation}
+        onClose={() => setShowConfirmation(false)}
+        orderSummary={orderSummary}
       />
     </main>
+
   );
 }
 
