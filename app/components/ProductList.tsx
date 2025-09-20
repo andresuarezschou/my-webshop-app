@@ -1,10 +1,13 @@
+
 'use client';
 
 import Image from 'next/image';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Cart from './Cart';
-import Checkout from './Checkout'
-import Confirmation from './Confirmation'
+import Checkout from './Checkout';
+import Confirmation from './Confirmation';
+import OrderHistory from './OrderHistory';
+import { supabase } from '../../lib/supabaseClient';
 
 const STRAPI_API_URL = process.env.NEXT_PUBLIC_STRAPI_API_URL || 'http://localhost:1337';
 
@@ -61,6 +64,34 @@ export default function ProductList({ products }: ProductListProps) {
   const [showCheckout, setShowCheckout] = useState<boolean>(false);
   const [showConfirmation, setShowConfirmation] = useState<boolean>(false);
   const [orderSummary, setOrderSummary] = useState({ fullName: '', email: '', total: 0 });
+  const [userId, setUserId] = useState<string | null>(null);
+  const [showOrderHistory, setShowOrderHistory] = useState<boolean>(false);
+
+  useEffect(() => {
+    // This listener ensures we always have the current user's ID
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      // If we have a session, use that user's ID.
+      if (session) {
+        setUserId(session.user.id);
+      } else {
+        // Otherwise, sign in anonymously to create one.
+        // This is a one-time operation per session that gives us a temporary user ID.
+        supabase.auth.signInAnonymously().then(({ data, error }) => {
+          if (error) {
+            console.error('Error signing in anonymously:', error.message);
+          }
+          if (data?.user) {
+            setUserId(data.user.id);
+          }
+        });
+      }
+    });
+
+    // Clean up the listener when the component unmounts
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
 
   const addToCart = (product: Product) => {
     const productName = product.attributes?.name || product.name;
@@ -99,7 +130,7 @@ export default function ProductList({ products }: ProductListProps) {
       }
     });
   };
-
+    
   const clearCart = () => {
     setCartItems([]);
   };
@@ -111,27 +142,63 @@ export default function ProductList({ products }: ProductListProps) {
     setShowCheckout(true);
   };
 
-  const handleConfirmOrder = (summary: { fullName: string; email: string; total: number }) => {
+  const handleConfirmOrder = async (summary: { fullName: string; email: string; total: number }) => {
     setShowCheckout(false);
+
+    // Get the current session to ensure the user is authenticated just before inserting.
+    const { data: { session } } = await supabase.auth.getSession();
+
+    if (session) {
+      const { error } = await supabase
+        .from('orders')
+        .insert([{
+          user_id: session.user.id,
+          order_total: summary.total,
+          items_ordered: cartItems,
+        }]);
+
+      if (error) {
+        console.error('Error saving order to database:', error.message);
+      }
+    } else {
+      console.error('User not authenticated. Order not saved.');
+    }
+    
     clearCart();
     setOrderSummary(summary);
     setShowConfirmation(true);
   };
-
+  
+  const handleSignOut = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      console.error('Error signing out:', error.message);
+    }
+  };
 
   return (
     <main className="p-4 sm:p-8 md:p-12 lg:p-20">
       <div className="flex justify-between items-center py-10">
-        <h1 className="text-2xl">Our Products</h1>
-        <div className="flex items-center space-x-2">
+        
+        <div className="flex items-center space-x-4">
+          <button
+            onClick={() => setShowOrderHistory(true)}
+            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
+          >
+            Order History
+          </button>
           <button onClick={() => setShowCart(true)} className="flex items-center space-x-2">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2m7 0h3.5a1 1 0 010 2H9.25M3 3a2 2 0 012-2h14a2 2 0 012 2v14a2 2 0 01-2 2H3a2 2 0 01-2-2V3z" />
-            </svg>
-            <span className="text-lg">Cart ({totalItemsInCart})</span>
+            <span className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors">Cart ({totalItemsInCart})</span>
+          </button>
+          <button
+            onClick={handleSignOut}
+            className="mt-4 px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors"
+          >
+            Sign Out
           </button>
         </div>
       </div>
+      <h1 className="text-2xl py-5">Our Products</h1>
       <ul className="grid gap-10">
         {products.map((product: Product) => {
           const productName = product.attributes?.name || product.name;
@@ -148,7 +215,7 @@ export default function ProductList({ products }: ProductListProps) {
                   alt={productName || 'Product image'}
                   width={200}
                   height={200}
-                  unoptimized={true} 
+                  unoptimized={true}
                 />
               )}
               <p>
@@ -167,26 +234,31 @@ export default function ProductList({ products }: ProductListProps) {
           );
         })}
       </ul>
-      <Cart 
-        cartItems={cartItems} 
-        show={showCart} 
-        onClose={() => setShowCart(false)} 
+      <Cart
+        cartItems={cartItems}
+        show={showCart}
+        onClose={() => setShowCart(false)}
         onRemove={removeOneFromCart}
         onCheckout={handleCheckout}
       />
       <Checkout
-       cartItems={cartItems}
-       show={showCheckout}
-       onClose={() => setShowCheckout(false)}
-       onConfirmOrder={handleConfirmOrder}
+        cartItems={cartItems}
+        show={showCheckout}
+        onClose={() => setShowCheckout(false)}
+        onConfirmOrder={handleConfirmOrder}
       />
+      {/* Render the Confirmation modal */}
       <Confirmation
         show={showConfirmation}
         onClose={() => setShowConfirmation(false)}
         orderSummary={orderSummary}
       />
+      {/* NEW: Render the OrderHistory modal */}
+      <OrderHistory
+        show={showOrderHistory}
+        onClose={() => setShowOrderHistory(false)}
+        userId={userId}
+      />
     </main>
-
   );
 }
-
