@@ -77,7 +77,7 @@ export default async function Page() {
   
   if (!Array.isArray(products) || products.length === 0) {
     return (
-      <main className="p-8">
+      <main className="p-2">
         <h1>No Products Found</h1>
         <p>There might be an issue with the API, or no products have been added yet.</p>
         <p>Please check your Strapi admin panel.</p>

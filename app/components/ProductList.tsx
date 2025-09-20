@@ -120,7 +120,7 @@ export default function ProductList({ products }: ProductListProps) {
 
 
   return (
-    <main className="p-30">
+    <main className="p-4 sm:p-8 md:p-12 lg:p-20">
       <div className="flex justify-between items-center py-10">
         <h1 className="text-2xl">Our Products</h1>
         <div className="flex items-center space-x-2">
