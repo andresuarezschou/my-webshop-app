@@ -2,10 +2,15 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Add a custom image loader
+  // We don't need a custom loader because we are using Cloudinary.
+  // Next.js will handle the optimization automatically with Cloudinary URLs.
   images: {
-    loader: "custom", // This tells Next.js to use our custom loader
-    loaderFile: "./my-custom-loader.ts", // Updated to point to the .ts file
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com',
+      },
+    ],
   },
 };
 

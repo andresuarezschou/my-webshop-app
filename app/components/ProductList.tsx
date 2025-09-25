@@ -188,11 +188,11 @@ export default function ProductList({ products }: ProductListProps) {
             Order History
           </button>
           <button onClick={() => setShowCart(true)} className="flex items-center space-x-2">
-            <span className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors">Cart ({totalItemsInCart})</span>
+            <span className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 ">Cart ({totalItemsInCart})</span>
           </button>
           <button
             onClick={handleSignOut}
-            className="mt-4 px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors"
+            className="mt-4 px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-all duration-150 active:scale-95 active:bg-blue-700 active:shadow-inner"
           >
             Sign Out
           </button>
@@ -210,13 +210,15 @@ export default function ProductList({ products }: ProductListProps) {
             <li key={product.id}>
               <h2 className="text-2xl text-blue-600">{productName}</h2>
               {productImageUrl && (
+                
                 <Image
                   src={productImageUrl}
                   alt={productName || 'Product image'}
                   width={200}
                   height={200}
-                  unoptimized={true}
+                  className="rounded-xl h-50" 
                 />
+                
               )}
               <p>
                 {Array.isArray(productDescription)
@@ -226,7 +228,7 @@ export default function ProductList({ products }: ProductListProps) {
               <p className="text-yellow-400">Price: ${productPrice}</p>
               <button
                 onClick={() => addToCart(product)}
-                className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
+                className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-all duration-150 active:scale-95 active:bg-blue-700 active:shadow-inner"
               >
                 Add to Cart
               </button>
