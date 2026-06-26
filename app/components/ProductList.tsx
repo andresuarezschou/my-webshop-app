@@ -204,7 +204,7 @@ export default function ProductList({ products }: ProductListProps) {
           </button>
         </div>
       </div>
-      <h1 className="text-2xl py-5">Our Products</h1>
+      <h1 className="text-2xl py-5">Products</h1>
       <ul className="grid gap-10">
         {products.map((product: Product) => {
           const productName = product.attributes?.name || product.name;
@@ -227,7 +227,7 @@ export default function ProductList({ products }: ProductListProps) {
                 
               )}
 
-		<Accordion type="single" collapsible">
+		<Accordion type="single" collapsible>
 		  <AccordionItem value="item-1">
 		    <AccordionTrigger>About this item</AccordionTrigger>
 		    <AccordionContent>
