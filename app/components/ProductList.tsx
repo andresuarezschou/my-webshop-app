@@ -227,7 +227,7 @@ export default function ProductList({ products }: ProductListProps) {
                 
               )}
 
-		<Accordion type="single" collapsible defaultValue="item-1">
+		<Accordion type="single" collapsible">
 		  <AccordionItem value="item-1">
 		    <AccordionTrigger>About this item</AccordionTrigger>
 		    <AccordionContent>
