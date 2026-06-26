@@ -8,6 +8,12 @@ import Checkout from './Checkout';
 import Confirmation from './Confirmation';
 import OrderHistory from './OrderHistory';
 import { supabase } from '../../lib/supabaseClient';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 const STRAPI_API_URL = process.env.NEXT_PUBLIC_STRAPI_API_URL || 'http://localhost:1337';
 
@@ -220,11 +226,20 @@ export default function ProductList({ products }: ProductListProps) {
                 />
                 
               )}
-              <p>
-                {Array.isArray(productDescription)
-                  ? productDescription.map((block: DescriptionBlock) => block.children.map((child: DescriptionTextChild) => child.text).join('')).join(' ')
-                  : productDescription}
-              </p>
+
+		<Accordion type="single" collapsible defaultValue="item-1">
+		  <AccordionItem value="item-1">
+		    <AccordionTrigger>About this item</AccordionTrigger>
+		    <AccordionContent>
+	   		<p>
+			{Array.isArray(productDescription)
+			  ? productDescription.map((block: DescriptionBlock) => block.children.map((child: DescriptionTextChild) => child.text).join('')).join(' ')
+			  : productDescription}
+		      	</p>
+		    </AccordionContent>
+		  </AccordionItem>
+		</Accordion>
+
               <p className="text-yellow-400">Price: ${productPrice}</p>
               <button
                 onClick={() => addToCart(product)}
